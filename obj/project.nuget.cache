@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "v2soXbsAUpn8W616ztXkRjasDzhAEelsJNoORjNupo4wbsyXe691kXKcsYAMCBfPKrv7LfDq8GmXeinxodAuZA==",
+  "success": true,
+  "projectFilePath": "D:\\mah stuff\\jabos (d)\\programminggaming\\pvr converter test\\automaticPVRConverterThing\\automaticPVRConverterThing.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ender\\.nuget\\packages\\magick.net-q16-anycpu\\13.1.2\\magick.net-q16-anycpu.13.1.2.nupkg.sha512",
+    "C:\\Users\\ender\\.nuget\\packages\\magick.net.core\\13.1.2\\magick.net.core.13.1.2.nupkg.sha512",
+    "C:\\Users\\ender\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0\\microsoft.win32.systemevents.7.0.0.nupkg.sha512",
+    "C:\\Users\\ender\\.nuget\\packages\\system.drawing.common\\7.0.0\\system.drawing.common.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
