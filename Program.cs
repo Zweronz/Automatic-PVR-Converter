@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using ImageMagick;
+using System.Threading.Tasks;
 
 class Programmation
 {
@@ -33,7 +34,11 @@ class Programmation
 
         Console.WriteLine("Starting conversion of " + inputFiles.Length + " pvr files");
 
-        foreach (string inputFile in inputFiles)
+        // Specify the number of threads to use
+        int threadCount = GetUserSpecifiedThreadCount();
+
+        // Use Parallel.ForEach to process the input files in parallel
+        Parallel.ForEach(inputFiles, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, inputFile =>
         {
             string inputFileName = Path.GetFileName(inputFile);
             string outputFileName = Path.ChangeExtension(inputFileName, ".png");
@@ -41,17 +46,17 @@ class Programmation
             string arguments = $"-f r8g8b8a8 -i \"{inputFile}\" -d \"{outputPath}\"";
 
             ExecuteCommand(toolPath, arguments);
-        }
+        });
 
         string[] outputFiles = Directory.GetFiles(outputDirectory, "*.png");
-        foreach (string outputFile in outputFiles)
+        Parallel.ForEach(outputFiles, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, outputFile =>
         {
             if (linearize)
                 LinearizeImage(outputFile, outputFile);
 
             if (flip)
                 FlipImage(outputFile);
-        }
+        });
 
         string[] stupidFiles = (from file in Directory.GetFiles("pvrs", "*.pvr") where Path.GetFileNameWithoutExtension(file).EndsWith("_Out") select file).ToArray();
         foreach (string stupidFile in stupidFiles)
@@ -100,6 +105,7 @@ class Programmation
             process.WaitForExit();
         }
     }
+
     static void FlipImage(string imagePath)
     {
         Console.WriteLine("Flipping image: " + Path.GetFileName(imagePath));
@@ -109,5 +115,20 @@ class Programmation
             image.RotateFlip(RotateFlipType.Rotate180FlipX);
             image.Save(imagePath);
         }
+    }
+
+    static int GetUserSpecifiedThreadCount()
+    {
+        Console.WriteLine("Enter the number of threads to use (more threads = faster but higher demand on the system):");
+        string input = Console.ReadLine();
+        int threadCount;
+
+        while (!int.TryParse(input, out threadCount) || threadCount <= 0)
+        {
+            Console.WriteLine("Invalid input. Please enter a positive integer:");
+            input = Console.ReadLine();
+        }
+
+        return threadCount;
     }
 }
