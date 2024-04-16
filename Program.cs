@@ -51,7 +51,7 @@ class Programmation
             ExecuteCommand(toolPath, arguments);
         });
 
-        string[] outputFiles = Directory.GetFiles(outputDirectory, to ? "*.png" : "*" + extensionFile);
+        string[] outputFiles = Directory.GetFiles(outputDirectory, to ? "*" + extensionFile :  "*.png");
         Parallel.ForEach(outputFiles, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, outputFile =>
         {
             if (linearize)
