@@ -21,13 +21,16 @@ class Programmation
         string? extension = Console.ReadLine();
         string extensionFile = extension == "" || extension == null ? ".pvr" : extension;
 
+        Console.WriteLine("From or To pvr? (f/t)");
+        bool to = Console.ReadLine() == "t";
+
         string toolPath = "pvrcli/PVRTexToolCLI.exe";
-        string outputDirectory = "convertedpvrs";
+        string outputDirectory = to ? "pvrs" : "pngs";
 
         if (!Directory.Exists(outputDirectory))
             Directory.CreateDirectory(outputDirectory);
 
-        string[] inputFiles = Directory.GetFiles("pvrs", "*" + extensionFile);
+        string[] inputFiles = to ? Directory.GetFiles("pngs") : Directory.GetFiles("pvrs", "*" + extensionFile);
 
         if (inputFiles.Length == 0)
             Console.WriteLine("please put pvr files into the pvrs folder for conversion");
@@ -41,14 +44,14 @@ class Programmation
         Parallel.ForEach(inputFiles, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, inputFile =>
         {
             string inputFileName = Path.GetFileName(inputFile);
-            string outputFileName = Path.ChangeExtension(inputFileName, ".png");
+            string outputFileName = Path.ChangeExtension(inputFileName, to ? extensionFile : ".png");
             string outputPath = Path.Combine(outputDirectory, outputFileName);
             string arguments = $"-f r8g8b8a8 -i \"{inputFile}\" -d \"{outputPath}\"";
 
             ExecuteCommand(toolPath, arguments);
         });
 
-        string[] outputFiles = Directory.GetFiles(outputDirectory, "*.png");
+        string[] outputFiles = Directory.GetFiles(outputDirectory, to ? "*.png" : "*" + extensionFile);
         Parallel.ForEach(outputFiles, new ParallelOptions { MaxDegreeOfParallelism = threadCount }, outputFile =>
         {
             if (linearize)
@@ -58,11 +61,22 @@ class Programmation
                 FlipImage(outputFile);
         });
 
-        string[] stupidFiles = (from file in Directory.GetFiles("pvrs", "*.pvr") where Path.GetFileNameWithoutExtension(file).EndsWith("_Out") select file).ToArray();
-        foreach (string stupidFile in stupidFiles)
+        if (!to)
         {
-            Console.WriteLine("Deleting unnecessary generated file (" + Path.GetFileName(stupidFile) + ").");
-            File.Delete(stupidFile);
+            string[] stupidFiles = (from file in Directory.GetFiles("pvrs", "*.pvr") where Path.GetFileNameWithoutExtension(file).EndsWith("_Out") select file).ToArray();
+            foreach (string stupidFile in stupidFiles)
+            {
+                Console.WriteLine("Deleting unnecessary generated file (" + Path.GetFileName(stupidFile) + ").");
+                File.Delete(stupidFile);
+            }
+        }
+        else
+        {
+            string[] stupidFiles = (from file in Directory.GetFiles("pngs", "*.pvr") where Path.GetFileNameWithoutExtension(file).EndsWith("_Out") select file).ToArray();
+            foreach (string stupidFile in stupidFiles)
+            {
+                File.Move(stupidFile, outputDirectory + "/" + Path.GetFileName(stupidFile.Replace("_Out", "")));
+            }
         }
 
         Console.WriteLine("Finished. Press any key to exit");
